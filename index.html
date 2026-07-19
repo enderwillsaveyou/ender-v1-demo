@@ -229,11 +229,21 @@
     select { appearance: none; }
     .form-note { margin: 7px 0 0; color: var(--faint); font-size: 11.5px; }
 
-    .chat-thread { display: flex; flex-direction: column; gap: 10px; max-height: 430px; overflow: auto; padding: 3px 2px 10px; }
+    .chat-intro { padding: 2px 0 8px; }
+    .chat-intro h2 { margin-bottom: 6px; }
+    .chat-intro p { margin: 0; color: var(--muted); }
+    .chat-thread { display: flex; flex-direction: column; gap: 10px; min-height: 250px; max-height: 430px; overflow: auto; padding: 3px 2px 10px; }
     .bubble { max-width: 90%; padding: 10px 12px; border-radius: 18px; white-space: pre-wrap; overflow-wrap: anywhere; }
     .bubble.ender { align-self: flex-start; background: rgba(255, 255, 255, 0.055); border: 1px solid var(--line); }
     .bubble.mike { align-self: flex-end; background: var(--blue); color: #07111d; }
     .bubble .who { display: block; margin-bottom: 3px; font-size: 10.5px; font-weight: 850; opacity: 0.7; text-transform: uppercase; }
+    .chat-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+    .chat-link { padding: 8px 10px; border: 1px solid rgba(121, 173, 255, 0.28); border-radius: 999px; background: var(--blue-soft); color: var(--blue); font-weight: 800; cursor: pointer; }
+    .chat-link:hover { border-color: var(--blue); }
+    .composer { padding-top: 8px; }
+    .composer textarea { min-height: 76px; }
+    .voice-tools { margin-top: 9px; }
+    .voice-tools summary { color: var(--muted); font-size: 12px; font-weight: 800; cursor: pointer; }
     .quick-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px; }
     .quick-grid .button { width: 100%; }
     .voice-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0 3px; }
@@ -317,6 +327,7 @@
       .metric-grid .metric:last-child { grid-column: 1 / -1; }
       .button-row .button { flex: 1 1 auto; }
       .bubble { max-width: 95%; }
+      .chat-thread { min-height: 150px; max-height: 340px; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
@@ -341,7 +352,7 @@
     </div>
 
     <main>
-      <section id="view-home" class="view active" aria-labelledby="nav-home">
+      <section id="view-home" class="view" aria-labelledby="nav-home">
         <div class="stack">
           <article class="card hero" data-testid="startup-review">
             <div class="kicker">Ender startup review</div>
@@ -391,28 +402,35 @@
         </div>
       </section>
 
-      <section id="view-chat" class="view" aria-labelledby="nav-chat">
+      <section id="view-chat" class="view active" aria-labelledby="nav-chat">
         <div class="stack">
           <article class="card">
-            <div class="section-head"><h2>Chat with Ender</h2><span class="chip good">Local mock</span></div>
-            <div id="chat-thread" class="chat-thread" aria-live="polite" data-testid="chat-thread"></div>
-            <form id="chat-form">
-              <label for="chat-message">Message</label>
-              <textarea id="chat-message" maxlength="500" placeholder="Try: What should I focus on today?" required data-testid="chat-input"></textarea>
-              <div class="voice-row" aria-label="Voice demo controls">
-                <button id="voice-start" class="button warn" type="button">Speak</button>
-                <button id="voice-stop" class="button ghost" type="button">Stop</button>
-                <button id="voice-read" class="button ghost" type="button">Read reply</button>
-              </div>
-              <p id="voice-status" class="form-note" aria-live="polite">Voice availability depends on this browser. No recording is saved by the demo.</p>
-              <button class="button primary" type="submit" data-testid="chat-send">Send mock message</button>
-            </form>
-            <div class="quick-grid">
-              <button class="button" type="button" data-prompt="Status and reminders">Status</button>
-              <button class="button" type="button" data-prompt="Show the Action Center">Action Center</button>
-              <button class="button" type="button" data-prompt="Ask Doc for a health summary">Ask Doc</button>
-              <button class="button" type="button" data-prompt="What did I miss today?">What did I miss?</button>
+            <div class="section-head"><span class="kicker">Your Chief of Staff</span><span class="chip good">Ready</span></div>
+            <div class="chat-intro">
+              <h2>What do you need?</h2>
+              <p>Ask for information, a project update, a reminder summary, or help preparing an action.</p>
             </div>
+            <div id="chat-thread" class="chat-thread" aria-live="polite" data-testid="chat-thread"></div>
+            <div class="quick-grid">
+              <button class="button" type="button" data-prompt="What should I focus on today?">Today's focus</button>
+              <button class="button" type="button" data-prompt="Show project status">Project status</button>
+              <button class="button" type="button" data-prompt="What needs my approval?">Approvals</button>
+              <button class="button" type="button" data-prompt="Browse my files">Browse files</button>
+            </div>
+            <form id="chat-form" class="composer">
+              <label for="chat-message">Message Ender</label>
+              <textarea id="chat-message" maxlength="500" placeholder="Tell Ender what you need..." required data-testid="chat-input"></textarea>
+              <button class="button primary" type="submit" data-testid="chat-send">Send to Ender</button>
+              <details class="voice-tools">
+                <summary>Voice options</summary>
+                <div class="voice-row" aria-label="Voice demo controls">
+                  <button id="voice-start" class="button warn" type="button">Speak</button>
+                  <button id="voice-stop" class="button ghost" type="button">Stop</button>
+                  <button id="voice-read" class="button ghost" type="button">Read reply</button>
+                </div>
+                <p id="voice-status" class="form-note" aria-live="polite">Voice availability depends on this browser. No recording is saved by the demo.</p>
+              </details>
+            </form>
           </article>
 
           <article class="card">
@@ -461,7 +479,7 @@
             </div>
           </article>
 
-          <article class="card">
+          <article id="action-center" class="card">
             <div class="section-head"><h2>Action Center</h2><span id="control-count" class="chip">0 active</span></div>
             <div id="control-empty" class="small muted">No mock machine-control request is active.</div>
             <div id="control-active" class="approval-card" hidden>
@@ -516,8 +534,8 @@
   </div>
 
   <nav class="bottom-nav" aria-label="Demo navigation">
-    <button id="nav-home" class="nav-button active" type="button" data-view="home"><span aria-hidden="true">⌂</span>Home</button>
-    <button id="nav-chat" class="nav-button" type="button" data-view="chat"><span aria-hidden="true">◌</span>Chat</button>
+    <button id="nav-chat" class="nav-button active" type="button" data-view="chat"><span aria-hidden="true">◌</span>Chat</button>
+    <button id="nav-home" class="nav-button" type="button" data-view="home"><span aria-hidden="true">⌂</span>Dashboard</button>
     <button id="nav-tasks" class="nav-button" type="button" data-view="tasks"><span aria-hidden="true">✓</span>Tasks</button>
     <button id="nav-files" class="nav-button" type="button" data-view="files"><span aria-hidden="true">▤</span>Files</button>
     <button id="nav-lab" class="nav-button" type="button" data-view="lab"><span aria-hidden="true">◇</span>Test</button>
@@ -531,7 +549,11 @@
     const STORAGE_KEY = "ender-v1-public-demo-state";
     const defaultState = {
       chat: [
-        { role: "ender", text: "I am here. This is a safe mock workspace. Try Status, prepare a read-only task, review an approval, or browse the fictional AI OS files." }
+        {
+          role: "ender",
+          text: "I am here. Tell me what you need, and I will answer here or link you to the right place.",
+          actions: []
+        }
       ],
       tasks: [],
       documentationStatus: "pending",
@@ -612,7 +634,10 @@
         return {
           ...cloneDefaultState(),
           ...parsed,
-          tests: { ...cloneDefaultState().tests, ...(parsed.tests || {}) }
+          tests: { ...cloneDefaultState().tests, ...(parsed.tests || {}) },
+          chat: Array.isArray(parsed.chat)
+            ? parsed.chat.map(entry => ({ role: entry.role === "mike" ? "mike" : "ender", text: String(entry.text || ""), actions: Array.isArray(entry.actions) ? entry.actions : [] }))
+            : cloneDefaultState().chat
         };
       } catch (_) {
         return cloneDefaultState();
@@ -650,7 +675,7 @@
     }
 
     function setView(name, updateHash = true) {
-      const safeName = ["home", "chat", "tasks", "files", "lab"].includes(name) ? name : "home";
+      const safeName = ["home", "chat", "tasks", "files", "lab"].includes(name) ? name : "chat";
       document.querySelectorAll(".view").forEach(view => view.classList.toggle("active", view.id === `view-${safeName}`));
       document.querySelectorAll(".nav-button").forEach(button => button.classList.toggle("active", button.dataset.view === safeName));
       if (updateHash) history.replaceState(null, "", `#${safeName}`);
@@ -667,31 +692,79 @@
 
     function localReply(message) {
       const lowered = message.toLowerCase();
-      if (lowered.includes("status") || lowered.includes("focus")) {
-        return "Mock status: Ender is ready, one documentation approval is waiting, and no machine-control request is active. Recommended first move: review the exact documentation scope.";
+      if ((lowered.includes("status") || lowered.includes("focus")) && !lowered.includes("project")) {
+        return {
+          text: "Your mock AI OS is ready. One documentation approval is waiting, and no machine-control request is active. I recommend reviewing the exact documentation scope first.",
+          actions: [
+            { label: "Open Dashboard", view: "home", focus: "startup-review" },
+            { label: "Review approval", view: "tasks", focus: "approvals" }
+          ]
+        };
+      }
+      if (lowered.includes("approval") || lowered.includes("waiting")) {
+        const waiting = state.documentationStatus === "pending";
+        return {
+          text: waiting ? "One fictional documentation request needs your decision. It is limited to two mock Markdown files." : `The mock documentation request has already been ${state.documentationStatus}. Nothing else is waiting.`,
+          actions: [{ label: waiting ? "Review request" : "Open approvals", view: "tasks", focus: "approvals" }]
+        };
       }
       if (lowered.includes("action center") || lowered.includes("control")) {
-        return state.controlStatus === "active"
-          ? "Action Center: one harmless mock Calculator request is waiting. You can Stop it from the Tasks tab."
-          : "Action Center: no mock machine-control request is active.";
+        return {
+          text: state.controlStatus === "active" ? "Action Center: one harmless mock Calculator request is waiting. You can stop it before anything happens." : "Action Center: no mock machine-control request is active.",
+          actions: [{ label: "Open Action Center", view: "tasks", focus: "action-center" }]
+        };
       }
       if (lowered.includes("doc") || lowered.includes("health")) {
-        return "Doc summary: this public demo contains no real health values or notes. Use a fictional Quick Health button to validate the capture experience.";
+        return { text: "Doc summary: this public demo contains no real health values or notes. Use a fictional Quick Health button below to validate the capture experience.", actions: [] };
       }
-      if (lowered.includes("miss")) {
-        return "Today at a glance: one mock documentation approval is waiting, one fictional morning routine is scheduled, and there are no active control requests.";
+      if (lowered.includes("miss") || lowered.includes("reminder") || lowered.includes("today")) {
+        return {
+          text: "Today at a glance: one mock documentation approval is waiting, a fictional morning check-in is scheduled for 9:00 AM, and there are no active control requests.",
+          actions: [{ label: "See full dashboard", view: "home" }]
+        };
       }
       if (lowered.includes("file") || lowered.includes("folder")) {
-        return "Open the Files tab to explore a fictional AI OS structure modeled on agents, docs, projects, prompts, scripts, status, data, and output.";
+        return {
+          text: "I found the mock AI OS file library. It includes agents, docs, projects, prompts, scripts, status, data, and output.",
+          actions: [{ label: "Browse files", view: "files" }]
+        };
       }
-      return "I saved that only in this browser's mock session. For a structured test, try Status, browse Files, or prepare a read-only Agent Task.";
+      if (lowered.includes("project") || lowered.includes("ai os")) {
+        return {
+          text: "Mock project status: AI OS is in active demo validation. The next step is to finish the Ender chat workflow walkthrough.",
+          actions: [
+            { label: "Open Dashboard", view: "home" },
+            { label: "Open project files", view: "files" }
+          ]
+        };
+      }
+      if (lowered.includes("review") || lowered.includes("codex") || lowered.includes("claude") || lowered.includes("build")) {
+        const adapter = lowered.includes("claude") ? "Claude" : "Codex";
+        return {
+          text: `I can prepare that as a ${adapter} task for your review. The demo will not run it until you explicitly approve the separate simulation.`,
+          actions: [{ label: `Prepare ${adapter} task`, kind: "prepare-task", adapter, prompt: message }]
+        };
+      }
+      return {
+        text: "I captured that in this browser-only mock chat. I can help you check status, find a file, review approvals, or prepare a simulated agent task.",
+        actions: [
+          { label: "Open Dashboard", view: "home" },
+          { label: "Open Agent Tasks", view: "tasks" }
+        ]
+      };
     }
 
     function renderChat() {
       const thread = document.getElementById("chat-thread");
-      thread.innerHTML = state.chat.slice(-12).map(entry => `
-        <div class="bubble ${entry.role}"><span class="who">${entry.role === "mike" ? "Mike" : "Ender"}</span>${escapeHtml(entry.text)}</div>
-      `).join("");
+      const visible = state.chat.slice(-12);
+      const offset = state.chat.length - visible.length;
+      thread.innerHTML = visible.map((entry, visibleIndex) => {
+        const actions = Array.isArray(entry.actions) ? entry.actions : [];
+        const buttons = actions.length ? `<div class="chat-actions">${actions.map((action, actionIndex) =>
+          `<button class="chat-link" type="button" data-chat-message="${offset + visibleIndex}" data-chat-action="${actionIndex}">${escapeHtml(action.label)}</button>`
+        ).join("")}</div>` : "";
+        return `<div class="bubble ${entry.role}"><span class="who">${entry.role === "mike" ? "Mike" : "Ender"}</span>${escapeHtml(entry.text)}${buttons}</div>`;
+      }).join("");
       thread.scrollTop = thread.scrollHeight;
     }
 
@@ -699,11 +772,25 @@
       const clean = String(message || "").trim().slice(0, 500);
       if (!clean) return;
       state.chat.push({ role: "mike", text: clean });
-      state.chat.push({ role: "ender", text: localReply(clean) });
+      state.chat.push({ role: "ender", ...localReply(clean) });
       state.chat = state.chat.slice(-20);
       markTest("chat");
       saveState();
       renderChat();
+    }
+
+    function followChatAction(messageIndex, actionIndex) {
+      const action = state.chat[Number(messageIndex)]?.actions?.[Number(actionIndex)];
+      if (!action) return;
+      if (action.kind === "prepare-task") {
+        createTask(action.adapter, action.prompt);
+        setView("tasks");
+        return;
+      }
+      if (action.view) {
+        setView(action.view);
+        if (action.focus) window.setTimeout(() => document.getElementById(action.focus)?.scrollIntoView({ behavior: "smooth" }), 60);
+      }
     }
 
     function taskStatusLabel(status) {
@@ -958,6 +1045,10 @@
         input.value = "";
       });
       document.querySelectorAll("[data-prompt]").forEach(button => button.addEventListener("click", () => sendMessage(button.dataset.prompt)));
+      document.getElementById("chat-thread").addEventListener("click", event => {
+        const button = event.target.closest("[data-chat-action]");
+        if (button) followChatAction(button.dataset.chatMessage, button.dataset.chatAction);
+      });
       document.querySelectorAll("[data-health]").forEach(button => button.addEventListener("click", () => {
         state.healthEvent = button.dataset.health;
         saveState();
@@ -1001,7 +1092,7 @@
     bindEvents();
     setupVoice();
     renderAll();
-    setView(location.hash.slice(1) || "home", false);
+    setView(location.hash.slice(1) || "chat", false);
   </script>
 </body>
 </html>
