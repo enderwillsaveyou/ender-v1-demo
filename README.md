@@ -4,10 +4,10 @@ A self-contained, data-free demonstration of Ender, a personal AI Chief of Staff
 
 ## Try The Demo
 
-Open the GitHub Pages site, then use the five tabs at the bottom:
+Open the GitHub Pages site and start by messaging Ender. The five tabs at the bottom are:
 
-- **Home** — startup review, system health, and one recommended next action.
-- **Chat** — deterministic mock replies, quick prompts, and browser voice controls when supported.
+- **Chat** — the default interface for asking Ender for information, opening a relevant view, or preparing a simulated task.
+- **Dashboard** — startup review, system health, and one recommended next action.
 - **Tasks** — prepare, approve, run, cancel, and retry fictional Codex or Claude tasks.
 - **Files** — explore a mock AI OS folder structure with fictional file contents.
 - **Test** — complete the seven-feature walkthrough and run the built-in privacy self-check.
