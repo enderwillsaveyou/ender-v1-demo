@@ -1,0 +1,1007 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0e14">
+  <meta name="description" content="A data-free interactive demo of Ender, Mike's AI OS Chief of Staff.">
+  <link rel="icon" href="data:,">
+  <title>Ender V1 Demo</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --paper: #080c12;
+      --paper-2: #0d131c;
+      --card: rgba(18, 25, 35, 0.86);
+      --card-strong: #151e2a;
+      --ink: #f2f7fb;
+      --muted: #91a0af;
+      --faint: #5e6c7b;
+      --line: rgba(255, 255, 255, 0.1);
+      --blue: #79adff;
+      --blue-soft: rgba(121, 173, 255, 0.15);
+      --green: #59d49c;
+      --green-soft: rgba(89, 212, 156, 0.14);
+      --amber: #f1bd5f;
+      --amber-soft: rgba(241, 189, 95, 0.14);
+      --red: #ff7c86;
+      --red-soft: rgba(255, 124, 134, 0.14);
+      --purple: #c69cff;
+      --shadow: 0 18px 60px rgba(0, 0, 0, 0.36);
+      --radius: 20px;
+      --radius-small: 13px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 88% 4%, rgba(70, 124, 203, 0.16), transparent 30rem),
+        radial-gradient(circle at 4% 58%, rgba(59, 171, 123, 0.08), transparent 30rem),
+        var(--paper);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+      padding-bottom: calc(94px + env(safe-area-inset-bottom));
+    }
+
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
+      outline: 3px solid rgba(121, 173, 255, 0.55);
+      outline-offset: 2px;
+    }
+
+    .app-shell { width: min(100%, 760px); margin: 0 auto; padding: 0 16px 36px; }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      margin: 0 -16px;
+      padding: calc(13px + env(safe-area-inset-top)) 16px 12px;
+      background: rgba(8, 12, 18, 0.86);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--line);
+    }
+    .topbar-row { display: flex; align-items: center; gap: 11px; }
+    .mark {
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      background: linear-gradient(145deg, #79adff, #5078d8);
+      box-shadow: 0 10px 30px rgba(74, 116, 207, 0.34);
+      color: #08101b;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+    .brand { min-width: 0; }
+    .brand h1 { margin: 0; font-size: 18px; line-height: 1.1; }
+    .brand p { margin: 3px 0 0; color: var(--muted); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .demo-pill {
+      margin-left: auto;
+      flex: none;
+      padding: 5px 9px;
+      border: 1px solid rgba(241, 189, 95, 0.28);
+      border-radius: 999px;
+      color: var(--amber);
+      background: var(--amber-soft);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .demo-banner {
+      margin: 16px 0 12px;
+      padding: 12px 14px;
+      border-radius: var(--radius-small);
+      border: 1px solid rgba(241, 189, 95, 0.26);
+      background: linear-gradient(135deg, rgba(241, 189, 95, 0.14), rgba(241, 189, 95, 0.06));
+      color: #f7d99a;
+      font-size: 13px;
+    }
+    .demo-banner strong { color: #ffe7b7; }
+
+    .view { display: none; animation: rise 180ms ease-out; }
+    .view.active { display: block; }
+    @keyframes rise { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    .stack { display: grid; gap: 14px; }
+
+    .card {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--card);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+    .card h2, .card h3 { margin: 0; }
+    .card h2 { font-size: 19px; }
+    .card h3 { font-size: 15px; }
+    .kicker {
+      margin-bottom: 9px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+    .muted { color: var(--muted); }
+    .small { font-size: 13px; }
+    .micro { font-size: 11.5px; }
+    .section-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .section-head .chip { margin-left: auto; }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(145deg, rgba(30, 55, 88, 0.92), rgba(24, 36, 52, 0.8));
+      border-color: rgba(121, 173, 255, 0.24);
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -70px;
+      top: -90px;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(121, 173, 255, 0.2), transparent 68%);
+      pointer-events: none;
+    }
+    .hero h2 { position: relative; font-size: clamp(24px, 6vw, 34px); letter-spacing: -0.03em; }
+    .hero .date { margin: 3px 0 12px; color: rgba(242, 247, 251, 0.72); }
+    .hero-summary { position: relative; margin: 0; color: rgba(242, 247, 251, 0.92); }
+    .brief-list { margin-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.14); }
+    .brief-row { display: grid; grid-template-columns: 12px 1fr; gap: 10px; padding: 12px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+    .brief-row:last-child { border-bottom: 0; padding-bottom: 0; }
+    .brief-label { display: block; color: rgba(242, 247, 251, 0.6); font-size: 10.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+    .brief-text { display: block; margin-top: 2px; font-size: 13.5px; }
+    .dot { width: 9px; height: 9px; margin-top: 7px; border-radius: 50%; background: var(--muted); }
+    .dot.good { background: var(--green); box-shadow: 0 0 10px rgba(89, 212, 156, 0.44); }
+    .dot.info { background: var(--blue); box-shadow: 0 0 10px rgba(121, 173, 255, 0.44); }
+    .dot.warn { background: var(--amber); box-shadow: 0 0 10px rgba(241, 189, 95, 0.44); }
+
+    .chip-row { display: flex; flex-wrap: wrap; gap: 7px; }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--muted);
+      font-size: 11.5px;
+      font-weight: 750;
+    }
+    .chip.good { color: var(--green); background: var(--green-soft); border-color: rgba(89, 212, 156, 0.22); }
+    .chip.info { color: var(--blue); background: var(--blue-soft); border-color: rgba(121, 173, 255, 0.22); }
+    .chip.warn { color: var(--amber); background: var(--amber-soft); border-color: rgba(241, 189, 95, 0.22); }
+    .chip.danger { color: var(--red); background: var(--red-soft); border-color: rgba(255, 124, 134, 0.22); }
+
+    .primary-action { border-left: 4px solid var(--green); }
+    .primary-action p { margin: 7px 0 14px; font-size: 16px; font-weight: 650; }
+    .button-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .button, button.button {
+      min-height: 42px;
+      padding: 10px 13px;
+      border: 1px solid rgba(121, 173, 255, 0.24);
+      border-radius: 12px;
+      background: var(--blue-soft);
+      color: var(--blue);
+      font-weight: 750;
+      text-decoration: none;
+    }
+    .button.primary { background: var(--blue); color: #07111d; border-color: var(--blue); }
+    .button.good { background: var(--green-soft); color: var(--green); border-color: rgba(89, 212, 156, 0.25); }
+    .button.warn { background: var(--amber-soft); color: var(--amber); border-color: rgba(241, 189, 95, 0.25); }
+    .button.danger { background: var(--red-soft); color: var(--red); border-color: rgba(255, 124, 134, 0.25); }
+    .button.ghost { background: rgba(255, 255, 255, 0.04); color: var(--muted); border-color: var(--line); }
+    .button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+    .metric { min-width: 0; padding: 12px; border-radius: 14px; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--line); }
+    .metric span { display: block; color: var(--muted); font-size: 10.5px; font-weight: 750; letter-spacing: 0.05em; text-transform: uppercase; }
+    .metric strong { display: block; margin-top: 5px; overflow-wrap: anywhere; font-size: 14px; }
+    .list { margin-top: 10px; }
+    .list-row { display: flex; gap: 11px; align-items: center; padding: 11px 0; border-top: 1px solid var(--line); }
+    .list-row:first-child { border-top: 0; }
+    .list-main { min-width: 0; flex: 1; }
+    .list-main strong, .list-main span { display: block; }
+    .list-main span { color: var(--muted); font-size: 12.5px; }
+    .avatar { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 13px; background: var(--blue-soft); color: var(--blue); font-size: 12px; font-weight: 850; border: 1px solid rgba(121, 173, 255, 0.2); }
+
+    label { display: block; margin: 12px 0 6px; color: var(--muted); font-size: 12.5px; font-weight: 750; }
+    textarea, input, select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: rgba(2, 5, 9, 0.42);
+      color: var(--ink);
+      padding: 12px;
+    }
+    textarea { min-height: 96px; resize: vertical; }
+    select { appearance: none; }
+    .form-note { margin: 7px 0 0; color: var(--faint); font-size: 11.5px; }
+
+    .chat-thread { display: flex; flex-direction: column; gap: 10px; max-height: 430px; overflow: auto; padding: 3px 2px 10px; }
+    .bubble { max-width: 90%; padding: 10px 12px; border-radius: 18px; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .bubble.ender { align-self: flex-start; background: rgba(255, 255, 255, 0.055); border: 1px solid var(--line); }
+    .bubble.mike { align-self: flex-end; background: var(--blue); color: #07111d; }
+    .bubble .who { display: block; margin-bottom: 3px; font-size: 10.5px; font-weight: 850; opacity: 0.7; text-transform: uppercase; }
+    .quick-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px; }
+    .quick-grid .button { width: 100%; }
+    .voice-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0 3px; }
+
+    .task-card, .approval-card, .test-row { padding: 14px 0; border-top: 1px solid var(--line); }
+    .task-card:first-of-type, .approval-card:first-of-type, .test-row:first-of-type { border-top: 0; padding-top: 0; }
+    .task-title { display: flex; gap: 8px; align-items: flex-start; }
+    .task-title strong { flex: 1; }
+    .task-meta { margin: 6px 0 10px; color: var(--muted); font-size: 12px; }
+    .progress { height: 7px; overflow: hidden; border-radius: 999px; background: rgba(255, 255, 255, 0.07); }
+    .progress span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--blue), var(--green)); transition: width 500ms ease; }
+
+    .tree { font-family: Consolas, "SFMono-Regular", monospace; font-size: 13px; }
+    .tree details { margin-left: 13px; }
+    .tree > details { margin-left: 0; }
+    .tree summary { cursor: pointer; padding: 5px 3px; color: var(--muted); }
+    .tree summary::marker { color: var(--blue); }
+    .tree-file { display: block; width: calc(100% - 12px); margin-left: 12px; padding: 5px 8px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); text-align: left; }
+    .tree-file:hover, .tree-file.active { background: var(--blue-soft); color: var(--blue); }
+    .file-preview { margin-top: 14px; padding: 14px; min-height: 180px; border-radius: 14px; background: #070b10; border: 1px solid var(--line); overflow: auto; }
+    .file-preview pre { margin: 0; white-space: pre-wrap; word-break: break-word; color: #cbd5df; font: 12px/1.58 Consolas, monospace; }
+
+    .test-row { display: flex; align-items: center; gap: 11px; }
+    .test-icon { width: 27px; height: 27px; display: grid; place-items: center; border-radius: 50%; background: rgba(255, 255, 255, 0.05); color: var(--faint); font-weight: 900; }
+    .test-row.done .test-icon { background: var(--green-soft); color: var(--green); }
+    .test-row .list-main span { font-size: 11.5px; }
+
+    .bottom-nav {
+      position: fixed;
+      left: 50%;
+      bottom: 0;
+      z-index: 30;
+      width: min(100%, 760px);
+      transform: translateX(-50%);
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 3px;
+      padding: 9px 10px calc(9px + env(safe-area-inset-bottom));
+      background: rgba(9, 14, 21, 0.94);
+      border-top: 1px solid var(--line);
+      backdrop-filter: blur(20px);
+    }
+    .nav-button {
+      min-width: 0;
+      padding: 8px 4px;
+      border: 0;
+      border-radius: 12px;
+      background: transparent;
+      color: var(--faint);
+      font-size: 10.5px;
+      font-weight: 750;
+    }
+    .nav-button span { display: block; margin-bottom: 2px; font-size: 18px; line-height: 1; }
+    .nav-button.active { color: var(--blue); background: var(--blue-soft); }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 96px;
+      z-index: 50;
+      width: min(calc(100% - 32px), 520px);
+      transform: translate(-50%, 18px);
+      padding: 12px 14px;
+      border-radius: 13px;
+      background: #202b38;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: var(--shadow);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 160ms ease, transform 160ms ease;
+      color: var(--ink);
+      font-size: 13px;
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    @media (max-width: 560px) {
+      .app-shell { padding-left: 10px; padding-right: 10px; }
+      .topbar { margin-left: -10px; margin-right: -10px; padding-left: 12px; padding-right: 12px; }
+      .card { padding: 15px; border-radius: 17px; }
+      .metric-grid { grid-template-columns: 1fr 1fr; }
+      .metric-grid .metric:last-child { grid-column: 1 / -1; }
+      .button-row .button { flex: 1 1 auto; }
+      .bubble { max-width: 95%; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="topbar-row">
+        <div class="mark" aria-hidden="true">E</div>
+        <div class="brand">
+          <h1>Ender</h1>
+          <p>Chief of Staff · interactive validation build</p>
+        </div>
+        <span class="demo-pill">Mock demo</span>
+      </div>
+    </header>
+
+    <div class="demo-banner" role="note" data-testid="demo-banner">
+      <strong>Safe demo:</strong> every person, task, reminder, file, approval, and device state below is fictional. Nothing connects to your Mini PC, GitHub account, agents, or personal records.
+    </div>
+
+    <main>
+      <section id="view-home" class="view active" aria-labelledby="nav-home">
+        <div class="stack">
+          <article class="card hero" data-testid="startup-review">
+            <div class="kicker">Ender startup review</div>
+            <h2 id="greeting">Good morning, Mike.</h2>
+            <p id="demo-date" class="date">Demo workspace · Version 1</p>
+            <p class="hero-summary">Your mock AI OS is calm and ready. One decision and one routine check-in need attention.</p>
+            <div class="brief-list">
+              <div class="brief-row"><span class="dot info"></span><div><span class="brief-label">What changed</span><span class="brief-text">The sample Budget dashboard review finished with mock evidence.</span></div></div>
+              <div class="brief-row"><span class="dot warn"></span><div><span class="brief-label">Needs attention</span><span class="brief-text">One documentation approval is waiting. No machine-control request is active.</span></div></div>
+              <div class="brief-row"><span class="dot good"></span><div><span class="brief-label">Today's rhythm</span><span class="brief-text">Next mock reminder: Morning check-in at 9:00 AM.</span></div></div>
+            </div>
+          </article>
+
+          <article class="card primary-action">
+            <div class="kicker">One recommended next action</div>
+            <p>Review the mock documentation request, then approve or decline its exact file scope.</p>
+            <div class="button-row">
+              <button class="button primary" type="button" data-go="tasks" data-focus="approvals">Review request</button>
+              <button class="button ghost" type="button" data-action="refresh-review">Refresh review</button>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="section-head"><h2>System health</h2><span class="chip good">Mock healthy</span></div>
+            <div class="metric-grid">
+              <div class="metric"><span>Mini PC</span><strong>Online</strong></div>
+              <div class="metric"><span>Ender Host</span><strong>Ready</strong></div>
+              <div class="metric"><span>Private link</span><strong>Demo only</strong></div>
+            </div>
+            <div class="list">
+              <div class="list-row"><span class="dot good"></span><div class="list-main"><strong>Phone interface</strong><span>Interactive mock session</span></div><span class="chip good">Ready</span></div>
+              <div class="list-row"><span class="dot good"></span><div class="list-main"><strong>Codex lane</strong><span>Read-only simulation</span></div><span class="chip info">Available</span></div>
+              <div class="list-row"><span class="dot good"></span><div class="list-main"><strong>Claude lane</strong><span>Review simulation</span></div><span class="chip info">Available</span></div>
+              <div class="list-row"><span class="dot warn"></span><div class="list-main"><strong>Machine control</strong><span>Approval-gated simulation</span></div><span class="chip warn">Locked</span></div>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="section-head"><h2>AI team</h2><span class="chip">4 roles</span></div>
+            <div class="list">
+              <div class="list-row"><div class="avatar">En</div><div class="list-main"><strong>Ender</strong><span>Chief of Staff · coordination</span></div><span class="chip good">Active</span></div>
+              <div class="list-row"><div class="avatar">Doc</div><div class="list-main"><strong>Doc</strong><span>Health routine summaries</span></div><span class="chip">Ready</span></div>
+              <div class="list-row"><div class="avatar">Cx</div><div class="list-main"><strong>Codex</strong><span>Canonical-worktree builder</span></div><span class="chip info">Ready</span></div>
+              <div class="list-row"><div class="avatar">Cl</div><div class="list-main"><strong>Claude</strong><span>Independent review lane</span></div><span class="chip info">Ready</span></div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="view-chat" class="view" aria-labelledby="nav-chat">
+        <div class="stack">
+          <article class="card">
+            <div class="section-head"><h2>Chat with Ender</h2><span class="chip good">Local mock</span></div>
+            <div id="chat-thread" class="chat-thread" aria-live="polite" data-testid="chat-thread"></div>
+            <form id="chat-form">
+              <label for="chat-message">Message</label>
+              <textarea id="chat-message" maxlength="500" placeholder="Try: What should I focus on today?" required data-testid="chat-input"></textarea>
+              <div class="voice-row" aria-label="Voice demo controls">
+                <button id="voice-start" class="button warn" type="button">Speak</button>
+                <button id="voice-stop" class="button ghost" type="button">Stop</button>
+                <button id="voice-read" class="button ghost" type="button">Read reply</button>
+              </div>
+              <p id="voice-status" class="form-note" aria-live="polite">Voice availability depends on this browser. No recording is saved by the demo.</p>
+              <button class="button primary" type="submit" data-testid="chat-send">Send mock message</button>
+            </form>
+            <div class="quick-grid">
+              <button class="button" type="button" data-prompt="Status and reminders">Status</button>
+              <button class="button" type="button" data-prompt="Show the Action Center">Action Center</button>
+              <button class="button" type="button" data-prompt="Ask Doc for a health summary">Ask Doc</button>
+              <button class="button" type="button" data-prompt="What did I miss today?">What did I miss?</button>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="section-head"><h2>Quick health</h2><span class="chip">Fictional events</span></div>
+            <p class="small muted">Use these only to test the interface. The demo stores clicks in this browser and never accepts real readings or notes.</p>
+            <div class="quick-grid">
+              <button class="button good" type="button" data-health="Morning check-in">Morning check-in</button>
+              <button class="button good" type="button" data-health="Water check">Water check</button>
+              <button class="button good" type="button" data-health="Vitamins check">Vitamins check</button>
+              <button class="button good" type="button" data-health="Evening check-in">Evening check-in</button>
+            </div>
+            <p id="health-result" class="small muted" aria-live="polite">No mock health event recorded in this session.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="view-tasks" class="view" aria-labelledby="nav-tasks">
+        <div class="stack">
+          <article class="card">
+            <div class="section-head"><h2>Agent tasks</h2><span class="chip info">Simulation</span></div>
+            <form id="task-form">
+              <label for="task-adapter">Agent lane</label>
+              <select id="task-adapter">
+                <option value="Codex">Codex · read-only review</option>
+                <option value="Claude">Claude · independent review</option>
+              </select>
+              <label for="task-prompt">Task</label>
+              <textarea id="task-prompt" maxlength="500" required>Review the mock README and return the project name.</textarea>
+              <p class="form-note">This creates a browser-only mock task. It cannot run a command or touch a repository.</p>
+              <button class="button primary" type="submit" data-testid="task-prepare">Prepare task</button>
+            </form>
+            <div id="task-list" class="list" aria-live="polite" data-testid="task-list"></div>
+          </article>
+
+          <article id="approvals" class="card">
+            <div class="section-head"><h2>Heartbeat approvals</h2><span id="approval-count" class="chip warn">1 waiting</span></div>
+            <div id="documentation-approval" class="approval-card" data-testid="documentation-approval">
+              <div class="task-title"><strong>Synchronize mock startup-review documentation</strong><span id="documentation-status" class="chip warn">Pending</span></div>
+              <p class="task-meta">Documentation only · exact mock scope</p>
+              <div class="chip-row"><span class="chip">README.md</span><span class="chip">agents/handoff.md</span><span class="chip">current-status.md</span></div>
+              <p class="small muted">The demo approval cannot edit any file. It validates the review and decision experience only.</p>
+              <div class="button-row">
+                <button id="approve-documentation" class="button good" type="button" data-testid="approve-docs">Approve exact scope</button>
+                <button id="decline-documentation" class="button danger" type="button">Decline</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="section-head"><h2>Action Center</h2><span id="control-count" class="chip">0 active</span></div>
+            <div id="control-empty" class="small muted">No mock machine-control request is active.</div>
+            <div id="control-active" class="approval-card" hidden>
+              <div class="task-title"><strong>Open Calculator and confirm it launches</strong><span id="control-status" class="chip warn">Waiting</span></div>
+              <p class="task-meta">Foreground control · approval remains outside the phone interface</p>
+              <div class="button-row"><button id="stop-control" class="button danger" type="button">Stop request</button></div>
+            </div>
+            <button id="queue-control" class="button warn" type="button" data-testid="queue-control">Queue harmless mock request</button>
+          </article>
+        </div>
+      </section>
+
+      <section id="view-files" class="view" aria-labelledby="nav-files">
+        <div class="stack">
+          <article class="card">
+            <div class="section-head"><h2>Mock AI OS files</h2><span class="chip good">Data-free</span></div>
+            <p class="small muted">This mirrors the useful shape of your project without copying any real content. Select a file to preview its fictional contents.</p>
+            <div id="file-tree" class="tree" data-testid="file-tree"></div>
+            <div class="file-preview">
+              <div id="file-name" class="kicker">Select a mock file</div>
+              <pre id="file-content">The preview will appear here.</pre>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="view-lab" class="view" aria-labelledby="nav-lab">
+        <div class="stack">
+          <article class="card">
+            <div class="section-head"><h2>Feature test lab</h2><span id="test-score" class="chip info">0 / 7 tried</span></div>
+            <p class="small muted">The checklist updates as you use the demo. It measures interface coverage, not real agent execution.</p>
+            <div id="test-list" class="list" data-testid="test-list"></div>
+            <div class="button-row">
+              <button id="run-smoke" class="button primary" type="button" data-testid="run-smoke">Run demo self-check</button>
+              <button id="reset-demo" class="button danger" type="button">Reset mock data</button>
+            </div>
+            <p id="smoke-result" class="small muted" aria-live="polite">Self-check has not run yet.</p>
+          </article>
+
+          <article class="card">
+            <div class="section-head"><h2>Public-demo boundary</h2><span class="chip good">Safe by design</span></div>
+            <div class="list">
+              <div class="list-row"><span class="dot good"></span><div class="list-main"><strong>No backend</strong><span>Static HTML, CSS, and JavaScript only</span></div></div>
+              <div class="list-row"><span class="dot good"></span><div class="list-main"><strong>No network calls</strong><span>No API, analytics, fonts, CDN, or account connection</span></div></div>
+              <div class="list-row"><span class="dot good"></span><div class="list-main"><strong>No real data</strong><span>Fictional names, tasks, files, reminders, and machine state</span></div></div>
+              <div class="list-row"><span class="dot warn"></span><div class="list-main"><strong>Simulation only</strong><span>Buttons demonstrate flows but never execute them</span></div></div>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <nav class="bottom-nav" aria-label="Demo navigation">
+    <button id="nav-home" class="nav-button active" type="button" data-view="home"><span aria-hidden="true">⌂</span>Home</button>
+    <button id="nav-chat" class="nav-button" type="button" data-view="chat"><span aria-hidden="true">◌</span>Chat</button>
+    <button id="nav-tasks" class="nav-button" type="button" data-view="tasks"><span aria-hidden="true">✓</span>Tasks</button>
+    <button id="nav-files" class="nav-button" type="button" data-view="files"><span aria-hidden="true">▤</span>Files</button>
+    <button id="nav-lab" class="nav-button" type="button" data-view="lab"><span aria-hidden="true">◇</span>Test</button>
+  </nav>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    "use strict";
+
+    const STORAGE_KEY = "ender-v1-public-demo-state";
+    const defaultState = {
+      chat: [
+        { role: "ender", text: "I am here. This is a safe mock workspace. Try Status, prepare a read-only task, review an approval, or browse the fictional AI OS files." }
+      ],
+      tasks: [],
+      documentationStatus: "pending",
+      controlStatus: "none",
+      healthEvent: "",
+      tests: {
+        startup: true,
+        chat: false,
+        task: false,
+        approval: false,
+        control: false,
+        files: false,
+        smoke: false
+      }
+    };
+
+    const testDefinitions = [
+      ["startup", "Startup review", "Review summary and one recommended action are visible."],
+      ["chat", "Chat and quick prompts", "Send a mock message or use a quick action."],
+      ["task", "Agent task lifecycle", "Prepare, approve, run, cancel, or retry a simulated task."],
+      ["approval", "Documentation approval", "Approve or decline an exact fictional file scope."],
+      ["control", "Action Center Stop", "Queue and stop the harmless mock Calculator request."],
+      ["files", "Mock folder structure", "Open a fictional file from the data-free project tree."],
+      ["smoke", "Built-in self-check", "Verify required sections and privacy boundaries in the page."],
+    ];
+
+    const mockFiles = {
+      "agents": {
+        "ender.md": "# Ender - Chief of Staff\n\nRole: coordinate, clarify, recommend one next move, and preserve Mike's approval boundaries.\n\nDemo authority: read mock state and simulate decisions only.",
+        "doc-health-agent.md": "# Doc - Health Agent\n\nSummarize fictional routine check-ins without diagnosis, dosing guidance, or medical claims.",
+        "handoff.md": "# AI Handoff\n\nCurrent objective: validate the data-free Ender demo.\n\nNext step: complete the feature test lab and record feedback."
+      },
+      "docs": {
+        "architecture.md": "# Architecture\n\nMarkdown is the source of truth. The public demo is a static presentation layer with embedded mock data.",
+        "decisions.md": "# Decisions\n\n- Keep the demo data-free.\n- Simulate approvals without granting authority.\n- Publish only after a privacy review.",
+        "ender-startup-review.md": "# Startup Review\n\nShow current state, needs attention, today's rhythm, and one source-backed next move."
+      },
+      "projects": {
+        "agent-os.md": "# AI OS\n\nStatus: active demo validation.\nOwner: Mike.\nNext action: finish the mock workflow walkthrough.",
+        "sample-budget-dashboard.md": "# Sample Budget Dashboard\n\nStatus: mock review complete.\nData: fictional values only."
+      },
+      "prompts": {
+        "chief-of-staff-startup-prompt.md": "# Chief of Staff Startup Prompt\n\nReturn a short command view, one recommended action, and one question only when needed."
+      },
+      "scripts": {
+        "build_dashboard.py": "# Demo file preview\n# In the real local project, this script generates the static dashboard.\n# No script runs in this public demo.",
+        "start-ender-v2.cmd": "@echo off\nREM Demo preview only. The real local launcher is never included or executed here."
+      },
+      "status": {
+        "command-status.md": "# Command Status\n\nMode: Version 1 mock demo\nObjective: validate the Ender experience with fictional data."
+      },
+      "data": {
+        "reminders": {
+          "reminders.example.json": "{\n  \"title\": \"Morning check-in\",\n  \"time\": \"09:00\",\n  \"status\": \"mock\"\n}"
+        },
+        "health": {
+          "README.md": "# Mock Health Data\n\nNo real readings, names, medications, dosages, or notes belong in the public demo."
+        },
+        "automation": {
+          "README.md": "# Mock Automation\n\nApproval and Action Center records exist only in browser memory and never trigger an action."
+        }
+      },
+      "output": {
+        "startup-review": {
+          "latest.md": "# Ender Startup Review\n\nMock workspace ready. One documentation approval is waiting."
+        }
+      }
+    };
+
+    function cloneDefaultState() {
+      return JSON.parse(JSON.stringify(defaultState));
+    }
+
+    function loadState() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+        if (!parsed || typeof parsed !== "object") return cloneDefaultState();
+        return {
+          ...cloneDefaultState(),
+          ...parsed,
+          tests: { ...cloneDefaultState().tests, ...(parsed.tests || {}) }
+        };
+      } catch (_) {
+        return cloneDefaultState();
+      }
+    }
+
+    let state = loadState();
+    let toastTimer = 0;
+    let speechRecognition = null;
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>'"]/g, character => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", "\"": "&quot;"
+      })[character]);
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      window.clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(() => toast.classList.remove("show"), 2400);
+    }
+
+    function markTest(name) {
+      if (!state.tests[name]) {
+        state.tests[name] = true;
+        saveState();
+        renderTests();
+      }
+    }
+
+    function setView(name, updateHash = true) {
+      const safeName = ["home", "chat", "tasks", "files", "lab"].includes(name) ? name : "home";
+      document.querySelectorAll(".view").forEach(view => view.classList.toggle("active", view.id === `view-${safeName}`));
+      document.querySelectorAll(".nav-button").forEach(button => button.classList.toggle("active", button.dataset.view === safeName));
+      if (updateHash) history.replaceState(null, "", `#${safeName}`);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function setDateAndGreeting() {
+      const now = new Date();
+      const hour = now.getHours();
+      const word = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
+      document.getElementById("greeting").textContent = `Good ${word}, Mike.`;
+      document.getElementById("demo-date").textContent = `${now.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })} · Demo workspace · Version 1`;
+    }
+
+    function localReply(message) {
+      const lowered = message.toLowerCase();
+      if (lowered.includes("status") || lowered.includes("focus")) {
+        return "Mock status: Ender is ready, one documentation approval is waiting, and no machine-control request is active. Recommended first move: review the exact documentation scope.";
+      }
+      if (lowered.includes("action center") || lowered.includes("control")) {
+        return state.controlStatus === "active"
+          ? "Action Center: one harmless mock Calculator request is waiting. You can Stop it from the Tasks tab."
+          : "Action Center: no mock machine-control request is active.";
+      }
+      if (lowered.includes("doc") || lowered.includes("health")) {
+        return "Doc summary: this public demo contains no real health values or notes. Use a fictional Quick Health button to validate the capture experience.";
+      }
+      if (lowered.includes("miss")) {
+        return "Today at a glance: one mock documentation approval is waiting, one fictional morning routine is scheduled, and there are no active control requests.";
+      }
+      if (lowered.includes("file") || lowered.includes("folder")) {
+        return "Open the Files tab to explore a fictional AI OS structure modeled on agents, docs, projects, prompts, scripts, status, data, and output.";
+      }
+      return "I saved that only in this browser's mock session. For a structured test, try Status, browse Files, or prepare a read-only Agent Task.";
+    }
+
+    function renderChat() {
+      const thread = document.getElementById("chat-thread");
+      thread.innerHTML = state.chat.slice(-12).map(entry => `
+        <div class="bubble ${entry.role}"><span class="who">${entry.role === "mike" ? "Mike" : "Ender"}</span>${escapeHtml(entry.text)}</div>
+      `).join("");
+      thread.scrollTop = thread.scrollHeight;
+    }
+
+    function sendMessage(message) {
+      const clean = String(message || "").trim().slice(0, 500);
+      if (!clean) return;
+      state.chat.push({ role: "mike", text: clean });
+      state.chat.push({ role: "ender", text: localReply(clean) });
+      state.chat = state.chat.slice(-20);
+      markTest("chat");
+      saveState();
+      renderChat();
+    }
+
+    function taskStatusLabel(status) {
+      return {
+        proposed: ["Needs approval", "warn"],
+        approved: ["Approved", "info"],
+        running: ["Running", "info"],
+        succeeded: ["Finished", "good"],
+        canceled: ["Canceled", "danger"]
+      }[status] || [status, ""];
+    }
+
+    function renderTasks() {
+      const list = document.getElementById("task-list");
+      if (!state.tasks.length) {
+        list.innerHTML = '<p class="small muted">No mock agent task prepared yet.</p>';
+        return;
+      }
+      list.innerHTML = state.tasks.slice().reverse().map(task => {
+        const [label, chipClass] = taskStatusLabel(task.status);
+        const buttons = task.status === "proposed"
+          ? `<button class="button good" type="button" data-task-action="approve" data-task-id="${task.id}">Approve once</button><button class="button danger" type="button" data-task-action="cancel" data-task-id="${task.id}">Cancel</button>`
+          : task.status === "approved"
+            ? `<button class="button primary" type="button" data-task-action="run" data-task-id="${task.id}">Run simulation</button><button class="button danger" type="button" data-task-action="cancel" data-task-id="${task.id}">Cancel</button>`
+            : task.status === "running"
+              ? `<button class="button danger" type="button" data-task-action="cancel" data-task-id="${task.id}">Cancel</button>`
+              : task.status === "canceled"
+                ? `<button class="button" type="button" data-task-action="retry" data-task-id="${task.id}">Prepare fresh retry</button>`
+                : "";
+        const result = task.status === "succeeded" ? '<p class="small"><strong>Mock result:</strong> The project name is AI OS.</p>' : "";
+        const progress = task.status === "running" ? 68 : task.status === "succeeded" ? 100 : 0;
+        return `<div class="task-card" data-task-card="${task.id}">
+          <div class="task-title"><strong>${escapeHtml(task.prompt)}</strong><span class="chip ${chipClass}">${label}</span></div>
+          <p class="task-meta">${escapeHtml(task.adapter)} · read-only simulation · browser session only</p>
+          <div class="progress" aria-hidden="true"><span style="width:${progress}%"></span></div>
+          ${result}<div class="button-row">${buttons}</div>
+        </div>`;
+      }).join("");
+    }
+
+    function createTask(adapter, prompt) {
+      const task = {
+        id: `demo-${Date.now()}`,
+        adapter,
+        prompt: String(prompt).trim().slice(0, 500),
+        status: "proposed"
+      };
+      state.tasks.push(task);
+      state.tasks = state.tasks.slice(-5);
+      markTest("task");
+      saveState();
+      renderTasks();
+      showToast("Mock task prepared. Review its exact text before approval.");
+    }
+
+    function updateTask(id, action) {
+      const task = state.tasks.find(item => item.id === id);
+      if (!task) return;
+      if (action === "approve" && task.status === "proposed") task.status = "approved";
+      if (action === "cancel" && ["proposed", "approved", "running"].includes(task.status)) task.status = "canceled";
+      if (action === "retry" && task.status === "canceled") {
+        createTask(task.adapter, task.prompt);
+        return;
+      }
+      if (action === "run" && task.status === "approved") {
+        task.status = "running";
+        saveState();
+        renderTasks();
+        window.setTimeout(() => {
+          const current = state.tasks.find(item => item.id === id);
+          if (current && current.status === "running") {
+            current.status = "succeeded";
+            saveState();
+            renderTasks();
+            showToast("Mock task finished. No real agent was launched.");
+          }
+        }, 900);
+        return;
+      }
+      saveState();
+      renderTasks();
+    }
+
+    function renderApproval() {
+      const status = state.documentationStatus;
+      const statusNode = document.getElementById("documentation-status");
+      const waiting = status === "pending";
+      statusNode.textContent = waiting ? "Pending" : status === "approved" ? "Approved" : "Declined";
+      statusNode.className = `chip ${waiting ? "warn" : status === "approved" ? "good" : "danger"}`;
+      document.getElementById("approval-count").textContent = waiting ? "1 waiting" : "0 waiting";
+      document.getElementById("approval-count").className = `chip ${waiting ? "warn" : "good"}`;
+      document.getElementById("approve-documentation").disabled = !waiting;
+      document.getElementById("decline-documentation").disabled = !waiting;
+    }
+
+    function decideDocumentation(decision) {
+      if (state.documentationStatus !== "pending") return;
+      state.documentationStatus = decision;
+      markTest("approval");
+      saveState();
+      renderApproval();
+      showToast(decision === "approved" ? "Exact mock scope approved. No files were edited." : "Mock request declined.");
+    }
+
+    function renderControl() {
+      const active = state.controlStatus === "active";
+      document.getElementById("control-empty").hidden = active;
+      document.getElementById("control-active").hidden = !active;
+      document.getElementById("queue-control").disabled = active;
+      document.getElementById("control-count").textContent = active ? "1 active" : "0 active";
+      document.getElementById("control-count").className = `chip ${active ? "warn" : ""}`;
+    }
+
+    function queueControl() {
+      state.controlStatus = "active";
+      markTest("control");
+      saveState();
+      renderControl();
+      showToast("Harmless mock request queued. Nothing opened on this device.");
+    }
+
+    function stopControl() {
+      state.controlStatus = "none";
+      markTest("control");
+      saveState();
+      renderControl();
+      showToast("Mock control request stopped.");
+    }
+
+    function buildTree(node, path = []) {
+      return Object.entries(node).map(([name, value]) => {
+        const nextPath = [...path, name];
+        if (typeof value === "string") {
+          const encodedPath = encodeURIComponent(nextPath.join("/"));
+          return `<button class="tree-file" type="button" data-file-path="${encodedPath}">· ${escapeHtml(name)}</button>`;
+        }
+        return `<details ${path.length < 1 ? "open" : ""}><summary>${escapeHtml(name)}/</summary>${buildTree(value, nextPath)}</details>`;
+      }).join("");
+    }
+
+    function valueAtPath(root, path) {
+      return path.reduce((value, key) => value && value[key], root);
+    }
+
+    function openMockFile(encodedPath, button) {
+      const path = decodeURIComponent(encodedPath).split("/");
+      const content = valueAtPath(mockFiles, path);
+      if (typeof content !== "string") return;
+      document.querySelectorAll(".tree-file").forEach(item => item.classList.toggle("active", item === button));
+      document.getElementById("file-name").textContent = path.join("/");
+      document.getElementById("file-content").textContent = content;
+      markTest("files");
+    }
+
+    function renderTests() {
+      const list = document.getElementById("test-list");
+      list.innerHTML = testDefinitions.map(([key, title, description]) => `
+        <div class="test-row ${state.tests[key] ? "done" : ""}">
+          <div class="test-icon">${state.tests[key] ? "✓" : "·"}</div>
+          <div class="list-main"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(description)}</span></div>
+        </div>
+      `).join("");
+      const count = Object.values(state.tests).filter(Boolean).length;
+      document.getElementById("test-score").textContent = `${count} / ${testDefinitions.length} tried`;
+      document.getElementById("test-score").className = `chip ${count === testDefinitions.length ? "good" : "info"}`;
+    }
+
+    function runSmokeCheck() {
+      const required = ["startup-review", "demo-banner", "chat-thread", "task-list", "documentation-approval", "queue-control", "file-tree", "test-list"];
+      const missing = required.filter(testId => !document.querySelector(`[data-testid="${testId}"]`));
+      const externalResources = document.querySelectorAll("script[src], link[rel='stylesheet'], img[src^='http']").length;
+      const serverForms = [...document.forms].filter(form => form.hasAttribute("action")).length;
+      const bannerIsClear = document.querySelector("[data-testid='demo-banner']")?.textContent.includes("fictional");
+      state.tests.smoke = missing.length === 0 && externalResources === 0 && serverForms === 0 && Boolean(bannerIsClear);
+      saveState();
+      renderTests();
+      const result = document.getElementById("smoke-result");
+      if (state.tests.smoke) {
+        result.textContent = "PASS: all required demo surfaces exist, the mock-data warning is visible, and no external resource or server form is present.";
+        result.style.color = "var(--green)";
+      } else {
+        result.textContent = `FAIL: ${missing.length} surface(s) missing; ${externalResources} external resource(s); ${serverForms} server form(s).`;
+        result.style.color = "var(--red)";
+      }
+    }
+
+    function resetDemo() {
+      state = cloneDefaultState();
+      saveState();
+      renderAll();
+      document.getElementById("smoke-result").textContent = "Self-check has not run yet.";
+      document.getElementById("smoke-result").style.color = "";
+      showToast("All browser-only mock data was reset.");
+    }
+
+    function setupVoice() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const status = document.getElementById("voice-status");
+      if (!SpeechRecognition) {
+        document.getElementById("voice-start").addEventListener("click", () => {
+          status.textContent = "Voice capture is unavailable in this browser. Type a message to continue testing.";
+        });
+      } else {
+        speechRecognition = new SpeechRecognition();
+        speechRecognition.lang = "en-US";
+        speechRecognition.interimResults = false;
+        speechRecognition.maxAlternatives = 1;
+        speechRecognition.addEventListener("start", () => { status.textContent = "Listening for a mock message…"; });
+        speechRecognition.addEventListener("result", event => {
+          document.getElementById("chat-message").value = event.results[0][0].transcript;
+          status.textContent = "Voice captured. Review the text before sending.";
+        });
+        speechRecognition.addEventListener("error", () => { status.textContent = "Voice was not available. You can still type a message."; });
+        speechRecognition.addEventListener("end", () => {
+          if (status.textContent.startsWith("Listening")) status.textContent = "Listening stopped. Review any captured text.";
+        });
+        document.getElementById("voice-start").addEventListener("click", () => speechRecognition.start());
+      }
+      document.getElementById("voice-stop").addEventListener("click", () => {
+        if (speechRecognition) speechRecognition.stop();
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
+        status.textContent = "Voice stopped.";
+      });
+      document.getElementById("voice-read").addEventListener("click", () => {
+        if (!window.speechSynthesis) {
+          status.textContent = "Read-aloud is unavailable in this browser.";
+          return;
+        }
+        const latest = [...state.chat].reverse().find(entry => entry.role === "ender");
+        if (!latest) return;
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(new SpeechSynthesisUtterance(latest.text));
+        status.textContent = "Reading Ender's latest mock reply.";
+      });
+    }
+
+    function bindEvents() {
+      document.querySelectorAll(".nav-button").forEach(button => button.addEventListener("click", () => setView(button.dataset.view)));
+      document.querySelectorAll("[data-go]").forEach(button => button.addEventListener("click", () => {
+        setView(button.dataset.go);
+        if (button.dataset.focus) document.getElementById(button.dataset.focus)?.scrollIntoView({ behavior: "smooth" });
+      }));
+      document.querySelector("[data-action='refresh-review']").addEventListener("click", () => {
+        markTest("startup");
+        setDateAndGreeting();
+        showToast("Mock startup review refreshed from embedded demo data.");
+      });
+      document.getElementById("chat-form").addEventListener("submit", event => {
+        event.preventDefault();
+        const input = document.getElementById("chat-message");
+        sendMessage(input.value);
+        input.value = "";
+      });
+      document.querySelectorAll("[data-prompt]").forEach(button => button.addEventListener("click", () => sendMessage(button.dataset.prompt)));
+      document.querySelectorAll("[data-health]").forEach(button => button.addEventListener("click", () => {
+        state.healthEvent = button.dataset.health;
+        saveState();
+        document.getElementById("health-result").textContent = `Mock event saved in this browser: ${state.healthEvent}.`;
+        showToast("Fictional health event saved locally in the demo.");
+      }));
+      document.getElementById("task-form").addEventListener("submit", event => {
+        event.preventDefault();
+        createTask(document.getElementById("task-adapter").value, document.getElementById("task-prompt").value);
+      });
+      document.getElementById("task-list").addEventListener("click", event => {
+        const button = event.target.closest("[data-task-action]");
+        if (button) updateTask(button.dataset.taskId, button.dataset.taskAction);
+      });
+      document.getElementById("approve-documentation").addEventListener("click", () => decideDocumentation("approved"));
+      document.getElementById("decline-documentation").addEventListener("click", () => decideDocumentation("declined"));
+      document.getElementById("queue-control").addEventListener("click", queueControl);
+      document.getElementById("stop-control").addEventListener("click", stopControl);
+      document.getElementById("file-tree").addEventListener("click", event => {
+        const button = event.target.closest("[data-file-path]");
+        if (button) openMockFile(button.dataset.filePath, button);
+      });
+      document.getElementById("run-smoke").addEventListener("click", runSmokeCheck);
+      document.getElementById("reset-demo").addEventListener("click", resetDemo);
+      window.addEventListener("hashchange", () => setView(location.hash.slice(1), false));
+    }
+
+    function renderAll() {
+      setDateAndGreeting();
+      renderChat();
+      renderTasks();
+      renderApproval();
+      renderControl();
+      renderTests();
+      document.getElementById("health-result").textContent = state.healthEvent
+        ? `Mock event saved in this browser: ${state.healthEvent}.`
+        : "No mock health event recorded in this session.";
+    }
+
+    document.getElementById("file-tree").innerHTML = buildTree(mockFiles);
+    bindEvents();
+    setupVoice();
+    renderAll();
+    setView(location.hash.slice(1) || "home", false);
+  </script>
+</body>
+</html>
